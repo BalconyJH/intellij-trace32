@@ -32,6 +32,7 @@ class CmmCompletionContributor : CompletionContributor(), DumbAware {
         val before = text.substring(text.lastIndexOf('\n', start - 1) + 1, start)
         val label = Regex("(?is).*\\b(GOTO|GOSUB|JUMPTO)\\s+").matches(before)
         if (macro || label) {
+            val symbols = matched.withPrefixMatcher(SymbolPrefixMatcher(matched.prefixMatcher.prefix))
             for (symbol in file.model().symbols()) {
                 if (macro && file.model().resolve(CmmModel.Reference(offset, offset, symbol.name(), true)) == null) continue
                 if (symbol.macro() == macro && seen.add(symbol.name())) {
@@ -44,7 +45,7 @@ class CmmCompletionContributor : CompletionContributor(), DumbAware {
                             insertion.document.insertString(tail, ")")
                         insertion.editor.caretModel.moveToOffset(tail + 1)
                     }
-                    matched.addElement(lookup)
+                    symbols.addElement(lookup)
                 }
             }
             return
@@ -109,6 +110,12 @@ class CmmCompletionContributor : CompletionContributor(), DumbAware {
     }
     private fun isWord(c: Char) = c.isLetterOrDigit() || c in "_.&/"
     override fun invokeAutoPopup(position: PsiElement, typeChar: Char) = typeChar in ".&/\\"
+
+    // PRACTICE symbols remain case-sensitive regardless of the IDE's completion preferences.
+    private class SymbolPrefixMatcher(prefix: String) : PrefixMatcher(prefix) {
+        override fun prefixMatches(name: String) = name.startsWith(prefix)
+        override fun cloneWithPrefix(prefix: String) = SymbolPrefixMatcher(prefix)
+    }
 
     data class PathContext(val start: Int, val quoted: Boolean, val typed: String)
     companion object {
