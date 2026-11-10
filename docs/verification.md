@@ -42,6 +42,8 @@ folding, formatting with blank-line preservation, diagnostics, parameter hints,
 navigation, symbol indexing, usages, rename, and optional LSP configuration.
 Completion-popup tests cover command dots, macro ampersands, and both script-path
 separators. The three regression suites retain 144 direct assertions.
+The final fixture run also completed without startup errors in the captured
+test logs.
 
 The real language-server test covers initialization, local and cross-file
 definitions, configured system/temp path prefixes, references, folding,

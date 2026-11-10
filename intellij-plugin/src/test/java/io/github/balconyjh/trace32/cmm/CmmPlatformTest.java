@@ -14,6 +14,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -26,7 +27,7 @@ import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.refactoring.BaseRefactoringProcessor;
 import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.testFramework.LightVirtualFile;
-import com.intellij.testFramework.PsiTestUtil;
+import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import com.intellij.testFramework.fixtures.TempDirTestFixture;
 import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl;
@@ -36,29 +37,44 @@ import com.intellij.util.indexing.FindSymbolParameters;
 import io.github.balconyjh.trace32.cmm.core.CmmScanner;
 import io.github.balconyjh.trace32.cmm.lsp.CmmLspClientDescriptor;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
 /** Real platform fixtures exercise plugin registration, editors, PSI edits, and file indexes. */
 public final class CmmPlatformTest extends BasePlatformTestCase {
+    private final TempDirTestFixture physicalTempDir = new TempDirTestFixtureImpl();
     private boolean previousAutocomplete;
-    private VirtualFile contentRoot;
 
     @Override
     protected TempDirTestFixture createTempDirTestFixture() {
-        // Static script references resolve through the local file system, as in a real project.
-        return new TempDirTestFixtureImpl();
+        return physicalTempDir;
+    }
+
+    @Override
+    protected LightProjectDescriptor getProjectDescriptor() {
+        // Install the physical root before project startup activities can inspect module roots.
+        return new LightProjectDescriptor() {
+            @Override
+            public VirtualFile createDirForSources(Module module) {
+                try {
+                    return physicalTempDir.findOrCreateDir("");
+                } catch (IOException exception) {
+                    throw new UncheckedIOException(exception);
+                }
+            }
+        };
     }
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        contentRoot = myFixture.getTempDirFixture().findOrCreateDir("");
-        PsiTestUtil.addContentRoot(getModule(), contentRoot);
-        for (var root : ModuleRootManager.getInstance(getModule()).getContentRoots()) {
-            if (root.getFileSystem().getProtocol().equals("temp")) PsiTestUtil.removeContentEntry(getModule(), root);
-        }
+        var roots = ModuleRootManager.getInstance(getModule()).getContentRoots();
+        assertEquals(1, roots.length);
+        assertEquals(myFixture.getTempDirFixture().getFile(""), roots[0]);
+        assertEquals("file", roots[0].getFileSystem().getProtocol());
         previousAutocomplete = CodeInsightSettings.getInstance().AUTOCOMPLETE_ON_CODE_COMPLETION;
         CodeInsightSettings.getInstance().AUTOCOMPLETE_ON_CODE_COMPLETION = false;
         CmmSettings.getInstance(getProject()).loadState(new CmmSettings.Data());
@@ -70,7 +86,6 @@ public final class CmmPlatformTest extends BasePlatformTestCase {
             CodeInsightSettings.getInstance().AUTOCOMPLETE_ON_CODE_COMPLETION = previousAutocomplete;
             CmmSettings.getInstance(getProject()).loadState(new CmmSettings.Data());
         } finally {
-            if (contentRoot != null) PsiTestUtil.removeContentEntry(getModule(), contentRoot);
             super.tearDown();
         }
     }

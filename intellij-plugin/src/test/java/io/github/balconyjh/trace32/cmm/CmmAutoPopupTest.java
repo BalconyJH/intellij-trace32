@@ -1,44 +1,51 @@
 package io.github.balconyjh.trace32.cmm;
 
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.EdtTestUtil;
-import com.intellij.testFramework.PsiTestUtil;
+import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.fixtures.CompletionAutoPopupTestCase;
 import com.intellij.testFramework.fixtures.TempDirTestFixture;
 import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+
 /** Type through the real editor pipeline and wait for the platform's completion popup. */
 public final class CmmAutoPopupTest extends CompletionAutoPopupTestCase {
-    private VirtualFile contentRoot;
+    private final TempDirTestFixture physicalTempDir = new TempDirTestFixtureImpl();
 
     @Override
     protected TempDirTestFixture createTempDirTestFixture() {
-        return new TempDirTestFixtureImpl();
+        return physicalTempDir;
+    }
+
+    @Override
+    protected LightProjectDescriptor getProjectDescriptor() {
+        // Install the physical root before project startup activities can inspect module roots.
+        return new LightProjectDescriptor() {
+            @Override
+            public VirtualFile createDirForSources(Module module) {
+                try {
+                    return physicalTempDir.findOrCreateDir("");
+                } catch (IOException exception) {
+                    throw new UncheckedIOException(exception);
+                }
+            }
+        };
     }
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
         EdtTestUtil.runInEdtAndWait(() -> {
-            contentRoot = myFixture.getTempDirFixture().findOrCreateDir("");
-            PsiTestUtil.addContentRoot(getModule(), contentRoot);
-            for (var root : ModuleRootManager.getInstance(getModule()).getContentRoots()) {
-                if (root.getFileSystem().getProtocol().equals("temp")) PsiTestUtil.removeContentEntry(getModule(), root);
-            }
+            var roots = ModuleRootManager.getInstance(getModule()).getContentRoots();
+            assertEquals(1, roots.length);
+            assertEquals(myFixture.getTempDirFixture().getFile(""), roots[0]);
+            assertEquals("file", roots[0].getFileSystem().getProtocol());
             CmmSettings.getInstance(getProject()).loadState(new CmmSettings.Data());
         });
-    }
-
-    @Override
-    protected void tearDown() throws Exception {
-        try {
-            if (contentRoot != null) {
-                EdtTestUtil.runInEdtAndWait(() -> PsiTestUtil.removeContentEntry(getModule(), contentRoot));
-            }
-        } finally {
-            super.tearDown();
-        }
     }
 
     public void testDotOpensCommandCompletion() {
