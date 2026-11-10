@@ -1,0 +1,34 @@
+name: Feature request
+description: Propose a focused enhancement to Toolkit for Lauterbach TRACE32®.
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Describe the user task and the limitation you encounter.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Proposed behavior
+      description: Include a small synthetic example when it helps explain the feature.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Editing and language analysis
+        - Navigation or refactoring
+        - LSP integration
+        - Build, compatibility, or documentation
+        - Future runtime or debugger integration
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: Alternatives and references
+      description: Link to public documentation for language rules or commands. Exclude private project information.

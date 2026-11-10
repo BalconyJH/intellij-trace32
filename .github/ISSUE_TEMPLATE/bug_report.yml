@@ -1,0 +1,40 @@
+name: Bug report
+description: Report an editor, navigation, build, or LSP integration problem.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use English and a minimal, synthetic reproduction. Remove private paths, project identifiers, credentials, and proprietary script content before sharing logs or files.
+  - type: input
+    id: versions
+    attributes:
+      label: Plugin and IDE versions
+      description: Include the plugin version and the complete CLion build number.
+      placeholder: "Plugin 0.2.0; CLion 263.x"
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, architecture, and t32ls version if enabled. Do not include a personal installation path.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Describe the steps and provide the smallest relevant PRACTICE example.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized evidence
+      description: Relevant error text or a small screenshot. State whether LSP was enabled and which checks you ran.
