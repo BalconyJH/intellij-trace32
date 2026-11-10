@@ -27,8 +27,9 @@ contains local paths, and explicitly selected local SDK directories cannot be
 hashed as archives; narrowly scoped exceptions cover those artifacts for the
 recorded builds. Downloaded archives and bundled JARs remain verified.
 When intentionally updating dependencies or selecting a different SDK build,
-regenerate metadata with `--write-verification-metadata sha256`, review the
-changes against upstream checksums, and rerun with
+regenerate metadata with `--refresh-dependencies --write-verification-metadata sha256`
+so cached parent POMs and BOM metadata are also recorded. Review the changes
+against upstream checksums, then rerun with
 `--dependency-verification strict`. Do not accept unexpected checksum changes.
 
 ## Build and package
