@@ -47,9 +47,16 @@ jobs:
             $versions = @($properties | ForEach-Object { if ($_ -match '^version:\s*(.+)$') { $Matches[1].Trim() } })
             if ($versions.Count -ne 1 -or $env:RELEASE_TAG -ne "v$($versions[0])") { throw 'Release tag does not match the Gradle project version.' }
           }
-      - name: Compile, test, and package the plugin
+      - name: Prepare the SDK and compile test fixtures
         shell: pwsh
-        run: ./gradlew.bat --no-daemon :practice-core:test :intellij-plugin:check :intellij-plugin:buildPlugin
+        run: ./gradlew.bat --no-daemon --console=plain :practice-core:test :intellij-plugin:testClasses
+      - name: Run IntelliJ platform tests
+        timeout-minutes: 15
+        shell: pwsh
+        run: ./gradlew.bat --no-daemon --console=plain --info :intellij-plugin:check
+      - name: Package the plugin and searchable options
+        shell: pwsh
+        run: ./gradlew.bat --no-daemon --console=plain :intellij-plugin:buildPlugin
       - name: Verify plugin API compatibility
         shell: pwsh
         run: ./gradlew.bat --no-daemon :intellij-plugin:verifyPlugin
@@ -73,6 +80,8 @@ jobs:
             practice-core/build/test-results/
             intellij-plugin/build/reports/
             intellij-plugin/build/test-results/
+            .intellijPlatform/sandbox/**/log*/
+          include-hidden-files: true
           if-no-files-found: warn
           retention-days: 14
       - name: Upload verified plugin and checksum

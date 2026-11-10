@@ -68,4 +68,7 @@ tasks.processResources {
 
 tasks.test {
     useJUnit()
+    testLogging {
+        events("started", "passed", "skipped", "failed")
+    }
 }
