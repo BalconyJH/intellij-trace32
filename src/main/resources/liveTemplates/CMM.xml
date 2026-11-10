@@ -1,0 +1,26 @@
+<templateSet group="Lauterbach TRACE32® PRACTICE">
+  <template name="cmmif" value="IF $CONDITION$&#10;(&#10;  $END$&#10;)" description="PRACTICE IF block" toReformat="true" toShortenFQNames="false">
+    <variable name="CONDITION" expression="" defaultValue="&quot;TRUE()&quot;" alwaysStopAt="true"/>
+    <context><option name="CMM" value="true"/></context>
+  </template>
+  <template name="cmmifelse" value="IF $CONDITION$&#10;(&#10;  $END$&#10;)&#10;ELSE&#10;(&#10;)" description="PRACTICE IF / ELSE blocks" toReformat="true" toShortenFQNames="false">
+    <variable name="CONDITION" expression="" defaultValue="&quot;TRUE()&quot;" alwaysStopAt="true"/>
+    <context><option name="CMM" value="true"/></context>
+  </template>
+  <template name="cmmwhile" value="WHILE $CONDITION$&#10;(&#10;  $END$&#10;)" description="PRACTICE WHILE loop" toReformat="true" toShortenFQNames="false">
+    <variable name="CONDITION" expression="" defaultValue="&quot;TRUE()&quot;" alwaysStopAt="true"/>
+    <context><option name="CMM" value="true"/></context>
+  </template>
+  <template name="cmmrepeat" value="RePeaT $COUNT$&#10;(&#10;  $END$&#10;)" description="PRACTICE counted loop" toReformat="true" toShortenFQNames="false">
+    <variable name="COUNT" expression="" defaultValue="&quot;10.&quot;" alwaysStopAt="true"/>
+    <context><option name="CMM" value="true"/></context>
+  </template>
+  <template name="cmmsub" value="SUBROUTINE $NAME$&#10;(&#10;  $END$&#10;  RETURN&#10;)" description="PRACTICE subroutine" toReformat="true" toShortenFQNames="false">
+    <variable name="NAME" expression="" defaultValue="&quot;initialize&quot;" alwaysStopAt="true"/>
+    <context><option name="CMM" value="true"/></context>
+  </template>
+  <template name="cmmerror" value="ON ERROR GOTO $LABEL$&#10;$END$&#10;ENDDO&#10;$LABEL$:&#10;PRINT &quot;Script failed&quot;&#10;ENDDO" description="PRACTICE error handler" toReformat="true" toShortenFQNames="false">
+    <variable name="LABEL" expression="" defaultValue="&quot;failed&quot;" alwaysStopAt="true"/>
+    <context><option name="CMM" value="true"/></context>
+  </template>
+</templateSet>
