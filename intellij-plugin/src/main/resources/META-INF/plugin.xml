@@ -21,6 +21,7 @@
     <lang.foldingBuilder language="CMM" implementationClass="io.github.balconyjh.trace32.cmm.CmmFoldingBuilder"/>
     <lang.braceMatcher language="CMM" implementationClass="io.github.balconyjh.trace32.cmm.CmmBraceMatcher"/>
     <completion.contributor language="CMM" implementationClass="io.github.balconyjh.trace32.cmm.CmmCompletionContributor"/>
+    <typedHandler implementation="io.github.balconyjh.trace32.cmm.CmmAutoPopupHandler"/>
     <lang.documentationProvider language="CMM" implementationClass="io.github.balconyjh.trace32.cmm.CmmDocumentationProvider"/>
     <lang.parameterInfo language="CMM" implementationClass="io.github.balconyjh.trace32.cmm.CmmParameterInfoHandler"/>
     <lang.structureViewBuilder language="CMM" implementationClass="io.github.balconyjh.trace32.cmm.CmmStructureViewFactory"/>

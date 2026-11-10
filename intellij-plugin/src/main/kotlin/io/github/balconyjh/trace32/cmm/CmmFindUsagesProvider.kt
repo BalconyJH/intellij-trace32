@@ -27,7 +27,7 @@ class CmmFindUsagesProvider : FindUsagesProvider {
 /** Exact, file-local references supplement the generic word index, including quoted macro uses. */
 class CmmReferenceSearch : QueryExecutor<PsiReference, ReferencesSearch.SearchParameters> {
     override fun execute(parameters: ReferencesSearch.SearchParameters, consumer: Processor<in PsiReference>): Boolean =
-        ReadAction.compute<Boolean, RuntimeException> { search(parameters, consumer) }
+        ReadAction.computeBlocking<Boolean, RuntimeException> { search(parameters, consumer) }
     private fun search(parameters: ReferencesSearch.SearchParameters, consumer: Processor<in PsiReference>): Boolean {
         val target = parameters.elementToSearch as? CmmParserDefinition.Atom ?: return true
         val file = target.containingFile as? CmmFile ?: return true

@@ -4,7 +4,6 @@ import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.psi.PsiElement
 import io.github.balconyjh.trace32.cmm.core.CmmCatalog
 import io.github.balconyjh.trace32.cmm.core.CmmModel
 import io.github.balconyjh.trace32.cmm.core.CmmScanner
@@ -109,7 +108,6 @@ class CmmCompletionContributor : CompletionContributor(), DumbAware {
         return true
     }
     private fun isWord(c: Char) = c.isLetterOrDigit() || c in "_.&/"
-    override fun invokeAutoPopup(position: PsiElement, typeChar: Char) = typeChar in ".&/\\"
 
     // PRACTICE symbols remain case-sensitive regardless of the IDE's completion preferences.
     private class SymbolPrefixMatcher(prefix: String) : PrefixMatcher(prefix) {

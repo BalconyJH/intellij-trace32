@@ -30,13 +30,11 @@ class CmmSymbolContributor : ChooseByNameContributorEx {
     override fun processElementsWithName(name: String, processor: Processor<in NavigationItem>, parameters: FindSymbolParameters) {
         val project = parameters.project
         if (DumbService.isDumb(project)) return
-        var processed = 0
         FileBasedIndex.getInstance().processValues(CmmNavigationIndex.NAME, CmmNavigationData.SYMBOL_PREFIX + name, null,
             { file, entries ->
                 for (entry in entries) {
                     ProgressManager.checkCanceled()
-                    if (processed >= parameters.limit) { parameters.reportCut(); return@processValues false }
-                    processed++
+                    // Let the public consumer stop iteration; SDK cutoff notifications are internal.
                     if (!processor.process(Item(project, file, entry))) return@processValues false
                 }
                 true
