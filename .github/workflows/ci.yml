@@ -1,0 +1,75 @@
+name: Core and repository checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.13'
+      - name: Check public repository content
+        shell: pwsh
+        run: |
+          python tools/check_repository.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/test_check_repository.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git diff --check
+      - name: Run language core regressions and restart fuzz cases
+        shell: pwsh
+        run: ./tools/test-core.ps1
+      - name: Save core test report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: core-test-report
+          path: build/core-tests/result.txt
+          if-no-files-found: error
+          retention-days: 14
+
+  lsp:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.13'
+      - name: Install checksum-pinned t32ls
+        shell: pwsh
+        run: ./tools/t32ls-install.ps1
+      - name: Exercise the real language server over stdio
+        shell: pwsh
+        run: |
+          $server = (Get-Content .tools/t32ls/0.14.2/install-manifest.json -Raw | ConvertFrom-Json).executable
+          python tools/t32ls-smoke.py --server $server --report build/t32ls-result.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Save protocol report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: lsp-protocol-report
+          path: build/t32ls-result.json
+          if-no-files-found: error
+          retention-days: 14
