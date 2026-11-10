@@ -1,0 +1,9 @@
+<idea-plugin>
+  <extensions defaultExtensionNs="com.intellij">
+    <platform.lsp.integrationProvider implementation="io.github.balconyjh.trace32.cmm.lsp.CmmLspIntegrationProvider"/>
+  </extensions>
+  <projectListeners>
+    <listener class="io.github.balconyjh.trace32.cmm.lsp.CmmLspSettingsListener"
+              topic="io.github.balconyjh.trace32.cmm.CmmSettings$Listener"/>
+  </projectListeners>
+</idea-plugin>
