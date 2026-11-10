@@ -24,12 +24,13 @@ class CmmFormattingModelBuilder : FormattingModelBuilder {
     }
     class Root(private val text: String, private val size: Int) : Block {
         private val lines = lines(text, size)
+        private val lineBreaks = text.count { it == '\n' }
         override fun getTextRange() = TextRange(0, text.length)
         override fun getSubBlocks(): List<Block> = lines
         override fun getWrap(): Wrap? = null
         override fun getIndent() = Indent.getNoneIndent()
         override fun getAlignment(): Alignment? = null
-        override fun getSpacing(child1: Block?, child2: Block): Spacing? = if (child1 == null) null else Spacing.createSpacing(0, 0, 1, true, Int.MAX_VALUE)
+        override fun getSpacing(child1: Block?, child2: Block): Spacing? = if (child1 == null) null else Spacing.createSpacing(0, 0, 1, true, lineBreaks)
         override fun getChildAttributes(newChildIndex: Int): ChildAttributes {
             val previous = lines.getOrNull(newChildIndex - 1)
             val spaces = previous?.let { it.spaces + if (it.opensBlock) size else 0 } ?: 0
