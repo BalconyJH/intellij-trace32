@@ -8,14 +8,16 @@ The current scope is a PRACTICE editor and language-analysis toolkit. Future wor
 - Contextual completion, curated documentation/signatures, conservative diagnostics, templates, folding, and indentation formatting.
 - Local symbol navigation, collision-aware rename, project symbol index, and static script call hierarchy.
 - Optional `t32ls` integration with project settings and checksum-pinned provisioning.
-- Standalone source, synthetic examples, regression/platform tests, and public build documentation.
+- Gradle Kotlin DSL with separate language-core and IntelliJ plugin modules.
+- JUnit regressions, IntelliJ platform fixtures, synthetic examples, and public build documentation.
+- Gradle sandbox, packaging, and Plugin Verifier tasks with shared CI entry points.
 
 ## Next validation work
 
-- Run and record full IDE acceptance for index queries, hierarchy UI, refactoring preview/undo, and IDE-managed LSP lifecycle.
+- Run and record full IDE acceptance for hierarchy UI, refactoring preview/undo, and IDE-managed LSP lifecycle.
 - Establish a verified product/version matrix before supporting IDEA or widening the platform range.
 - Improve command coverage with documented aliases, signatures, and regression fixtures.
-- Evaluate more robust SDK provisioning and additional operating systems for builds and server installation.
+- Expand verified operating-system coverage for plugin builds and language-server installation.
 
 ## Potential feature work
 

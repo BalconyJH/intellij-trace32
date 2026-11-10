@@ -1,94 +1,139 @@
 # Development and verification
 
-Run commands from the repository root. Build output and downloaded tools are ignored by Git.
+Run commands from the repository root. Use `./gradlew` on Unix-like systems and
+`.\gradlew.bat` in Windows PowerShell. Set `JAVA_HOME` to a full JDK 25.
+A system Gradle or Kotlin installation is not required.
 
-See the [standalone verification record](verification.md) for the completed local checks and their limits.
+## Build model
 
-## Toolchain
+The Gradle Kotlin DSL build has two modules:
 
-The full plugin build currently requires Windows, PowerShell 7.4+, a CLion 263 installation, and a full JDK compatible with the selected SDK. Hosted SDK builds use JDK 25 while the plugin targets JVM 21 bytecode. The bundled IDE runtime can be used when it includes `java` and `javac`; otherwise provide `JAVA_HOME` explicitly.
+- `practice-core`: IDE-independent scanner, static semantic model, and catalog.
+- `intellij-plugin`: IntelliJ adapters, editor features, settings, and optional LSP.
 
-The build bootstraps Kotlin 2.4.21 from Maven Central using the pinned digests in `tools/kotlin-artifacts.json`. Cached artifacts are verified before reuse. It compiles against the selected IDE's libraries and does not bundle another Kotlin runtime.
+The wrapper pins Gradle and its distribution checksum. Dependency versions are
+centralized in `gradle/libs.versions.toml`; plugin version and platform settings
+are in `gradle.properties`. The plugin targets JVM 25 bytecode and uses the Kotlin
+runtime supplied by the IDE. The core module uses the standard library for
+compilation and tests without adding a duplicate runtime to the plugin ZIP.
 
-The repository uses explicit SDK-based scripts instead of a Gradle build. No separately installed `kotlinc` is required.
+The former standalone build, smoke, compiler bootstrap, and local plugin update
+scripts have been removed. Gradle is the supported build and development entry
+point.
 
-## Build
+Dependency checksums are committed in `gradle/verification-metadata.xml`.
+Public SDK archive checksums come from JetBrains. Generated SDK descriptor XML
+contains local paths, and explicitly selected local SDK directories cannot be
+hashed as archives; narrowly scoped exceptions cover those artifacts for the
+recorded builds. Downloaded archives and bundled JARs remain verified.
+When intentionally updating dependencies or selecting a different SDK build,
+regenerate metadata with `--write-verification-metadata sha256`, review the
+changes against upstream checksums, and rerun with
+`--dependency-verification strict`. Do not accept unexpected checksum changes.
 
-Set `CLION_HOME` to the IDE installation directory, then run:
+## Build and package
 
-```powershell
-.\build.ps1 -ClionHome $env:CLION_HOME
+```shell
+./gradlew :practice-core:test :intellij-plugin:check :intellij-plugin:buildPlugin
+./gradlew :intellij-plugin:verifyPlugin
 ```
 
-To use a separate full JDK:
+The distribution appears in `intellij-plugin/build/distributions/`. The archive
+contains the plugin and language-core libraries, descriptors, templates, icons,
+and license notices. Tests, compiler dependencies, and `t32ls` are excluded.
+Install the ZIP using **Settings > Plugins > Install Plugin from Disk**.
+
+The default SDK is the public CLion build configured by `platformVersion`.
+To use an existing installation, set `CLION_HOME` locally and pass it explicitly:
 
 ```powershell
-.\build.ps1 -ClionHome $env:CLION_HOME -JdkHome $env:JAVA_HOME
+.\gradlew.bat "-PlocalPlatformPath=$env:CLION_HOME" :intellij-plugin:check :intellij-plugin:buildPlugin
+.\gradlew.bat "-PlocalPlatformPath=$env:CLION_HOME" :intellij-plugin:verifyPlugin
 ```
 
-The build compiles production Kotlin, runs Java regression entry points, packages resources, and runs the core platform smoke suite. It rejects unsupported SDK versions and leftover Java production sources. The version is read from `src/main/resources/META-INF/plugin.xml`.
+Keep machine-specific values out of tracked Gradle properties and IDE settings.
+A local SDK result does not establish compatibility with a different public SDK.
 
-Output: `build/trace32-toolkit-0.2.0.zip`. The ZIP contains `trace32-toolkit/lib/trace32-toolkit.jar`.
+## Development sandbox
 
-`-KotlinHome` selects an already prepared compiler directory. `-SkipTests` and `-SkipSmoke` are development shortcuts; they cannot be combined with `-Install` and are not release validation.
-
-## Test layers
-
-The scanner and model regressions can run without an IDE SDK. They require PowerShell 7.4+ and a full JDK 21 or newer:
-
-```powershell
-.\tools\test-core.ps1 -JdkHome $env:JAVA_HOME
+```shell
+./gradlew :intellij-plugin:runIde
 ```
 
-This lightweight suite does not compile or exercise the IntelliJ adapters.
+This opens a separate CLion sandbox with the plugin installed. The sandbox is
+build output; it does not replace the plugin in the normal IDE profile. CLion
+licensing and interactive setup still apply. A successful sandbox launch is
+separate from completing feature acceptance checks.
 
-| Suite | What it checks |
+## Automated tests
+
+```shell
+./gradlew :practice-core:test
+./gradlew :intellij-plugin:test
+```
+
+JUnit discovers the tests and writes XML results under each module's
+`build/test-results/` and HTML reports under `build/reports/tests/`.
+
+| Suite | Scope |
 | --- | --- |
-| `CmmScannerTest` | Token boundaries, restart equivalence, deterministic fuzz cases, and supplied script corpus |
-| `CmmModelTest` | Symbols, scopes, references, logical lines, folds, paths, and event-action parsing |
-| `CmmEditorTest` | Curated editing behavior and edge cases |
-| `CmmNavigationTest` | Symbol/call data, serialization, scope filtering, and recursion behavior |
-| `CmmCompletionRenameTest` | Actual command-position completion and rename binding/conflict rules |
-| `CmmSmokeStarter` | Real IntelliJ core PSI, references, edits, providers, resources, and LSP descriptor behavior |
-| `t32ls-smoke.py` | Real server stdio behavior using temporary scripts |
+| Core scanner | Token boundaries, restart equivalence, 350 deterministic fuzz cases, and eight synthetic scripts |
+| Static model | Symbols, scopes, references, logical lines, folds, paths, and event actions |
+| Editor regressions | Completion, documentation, highlighting, formatting, and rename rules |
+| Navigation regressions | Index payloads, serialization, path resolution, and scope filtering |
+| Platform fixtures | Real PSI/editor components, references, completion, refactoring, and project integration |
+| Real `t32ls` protocol | Stdio initialization, document analysis, configured directories, updates, and shutdown |
 
-Run the platform suite against an existing built JAR:
+The core module's corpus contains six resource files. Its Gradle resource task
+also includes the two checked-in examples. Missing corpus resources fail the
+test. No test may depend on a private checkout, a board, or a running
+Lauterbach TRACE32® session.
 
-```powershell
-.\smoke.ps1 -ClionHome $env:CLION_HOME -JdkHome $env:JAVA_HOME
+Run the separate language-server check using the [LSP guide](lsp.md#protocol-verification).
+Run publication checks with Python 3:
+
+```shell
+python tools/test_check_repository.py
+python tools/check_repository.py
 ```
 
-Use a valid full JDK value for the explicit `-JdkHome` argument. The full build also runs this suite. Platform reports are written under `build/smoke-*/result.txt`. Follow the [LSP guide](lsp.md#protocol-verification) for the separate server test.
-
-Test corpus files must be checked-in, synthetic, and hardware-independent. A passing suite must not depend on another development checkout or a private Lauterbach TRACE32® installation.
-
-Run the repository hygiene checks with Python 3:
-
-```powershell
-python .\tools\test_check_repository.py
-python .\tools\check_repository.py
-python .\tools\check_repository.py --artifact .\build\trace32-toolkit-0.2.0.zip
-```
-
-The final command requires a completed build. These checks enforce repository conventions and inspect the distribution for private data and unintended contents; they do not replace reviewing newly added files and logs.
+After packaging, add `--artifact` and the actual ZIP path from
+`intellij-plugin/build/distributions/`. The guard checks nested JARs as well as
+source files. The only allowed binary source file is the checksum-pinned Gradle
+wrapper JAR; wrapper upgrades must update that pin after upstream verification.
+These checks do not replace reviewing new files and logs.
 
 ## Manual IDE acceptance
 
-Use an authorized CLion installation after automated checks pass:
+Use the Gradle sandbox or an authorized CLion installation:
 
-1. Install the ZIP, restart, and confirm the plugin name and version.
-2. Open `examples/editor-demo.cmm`. Check highlighting, completion, documentation, parameter hints, comments, folding, indentation, and live templates.
-3. Use declaration navigation and usages. Rename a macro used several times in one string; inspect the preview and verify undo restores the original text. Confirm a conflicting rename is rejected.
-4. After indexing, use Navigate Symbol and the script Call Hierarchy. Check caller/callee views, scope selection, file navigation, and recursive edges.
-5. Configure `t32ls`, open a script, and inspect server startup. Check definitions and references, then change settings and disable LSP to exercise lifecycle handling.
-6. Confirm native editing still works with LSP disabled.
+1. Confirm the plugin name and version, then open `examples/editor-demo.cmm`.
+2. Check highlighting, completion, documentation, parameter hints, comments,
+   folding, indentation, and live templates.
+3. Navigate to declarations and usages. Rename a macro repeated in one string;
+   inspect the preview and verify undo restores the text. Reject a conflicting
+   rename without modifying the document.
+4. After indexing, exercise Navigate Symbol and Call Hierarchy, including scope
+   selection, file navigation, and recursive edges.
+5. Configure `t32ls`, inspect startup, change settings, and disable LSP to verify
+   the IDE-managed lifecycle. Confirm native editing still works without LSP.
 
-Record the IDE build, operating system, plugin version, and exact checks performed. Keep GUI acceptance separate from core platform smoke results.
+Record the IDE build, operating system, plugin version, and exact checks. Fixture
+assertions and Plugin Verifier do not establish GUI rendering, preview/undo, or
+language-server lifecycle behavior by themselves.
 
 ## CI and release checks
 
-The workflows define [lightweight checks](../.github/workflows/ci.yml) for pushes to `main` and pull requests, a [manual full SDK check](../.github/workflows/sdk-build.yml), and [artifact packaging](../.github/workflows/release.yml) for version tags. Hosted SDK builds use the checksum-pinned public distribution in `tools/clion-sdk.json`; the download is approximately 2.5 GB. Check the workflow definitions for prerequisites and inputs.
+[CI](../.github/workflows/ci.yml) validates repository content and the Gradle
+wrapper, runs core tests on Windows and Linux, exercises the real language
+server, and calls the [plugin verification workflow](../.github/workflows/sdk-build.yml).
+That workflow runs plugin tests, builds the ZIP, runs Plugin Verifier, and audits
+the archive. It can also run manually.
 
-Packaging uploads a workflow artifact. It does not create a public GitHub Release or publish to JetBrains Marketplace. A checked-in workflow is a specification of checks to run, not evidence that those checks have executed. SDK-independent jobs cannot validate platform APIs or GUI behavior.
+The [tag workflow](../.github/workflows/release.yml) requires a tag matching the
+Gradle project version and uploads the verified ZIP with a SHA-256 file. It does
+not publish to GitHub Releases or JetBrains Marketplace. Hosted workflow results
+must be reviewed independently of local runs.
 
-For changes to descriptors, SDK assumptions, indexing, UI providers, or refactoring, run a full SDK build even if lightweight CI passes. See [releasing](releasing.md) for the artifact and compatibility review.
+See [verification](verification.md) for recorded evidence and
+[releasing](releasing.md) for release preparation.

@@ -23,21 +23,19 @@ This repository currently provides **editing and language analysis**. It does no
 
 ## Build and install
 
-The full plugin build currently uses Windows, PowerShell 7.4+, and a local CLion 263 SDK. Set `CLION_HOME` to your CLion installation directory. If the IDE's bundled runtime does not include `javac`, set `JAVA_HOME` to a full JDK compatible with that SDK; hosted SDK builds use JDK 25.
+Install JDK 25 and set `JAVA_HOME` to that JDK. Open the repository root as a Gradle project. The checked-in Gradle Wrapper downloads the pinned Gradle version; the build resolves Kotlin and the configured CLion SDK.
 
 From the repository root:
 
-```powershell
-.\build.ps1 -ClionHome $env:CLION_HOME
-# When a separate JDK is required:
-.\build.ps1 -ClionHome $env:CLION_HOME -JdkHome $env:JAVA_HOME
+```shell
+./gradlew :practice-core:test :intellij-plugin:check :intellij-plugin:buildPlugin
 ```
 
-The build downloads checksum-pinned Kotlin compiler dependencies, runs regression and platform checks, and creates `build/trace32-toolkit-0.2.0.zip`. It does not require Gradle or a system Kotlin installation.
+On Windows PowerShell, use `.\gradlew.bat` in place of `./gradlew`. The distribution is written to `intellij-plugin/build/distributions/`. Run `./gradlew :intellij-plugin:verifyPlugin` to check compatibility against the configured IDE.
 
 In CLion, choose **Settings > Plugins > Install Plugin from Disk**, select the ZIP, and restart. If an earlier development version of this language plugin is installed, disable or uninstall it first to avoid duplicate file associations and extensions.
 
-Alternatively, add `-Install` to the build command to install into the default Windows CLion profile. The installer backs up an existing plugin. If its JAR is locked by the running IDE, it queues the verified update for the next restart. For custom plugin directories, use **Install Plugin from Disk**.
+For development, run `./gradlew :intellij-plugin:runIde` to launch a separate CLion sandbox with the plugin installed. To use a local SDK, pass `-PlocalPlatformPath` as described in the [development guide](docs/development.md).
 
 Open [examples/editor-demo.cmm](examples/editor-demo.cmm) to try the editor. Opening a script does not execute it. Build details and test commands are in the [development guide](docs/development.md).
 
@@ -73,6 +71,7 @@ Live templates: `cmmif`, `cmmifelse`, `cmmwhile`, `cmmrepeat`, `cmmsub`, and `cm
 ## Project information
 
 - [Architecture](docs/architecture.md)
+- [Project structure and upstream references](docs/project-structure.md)
 - [Development and verification](docs/development.md)
 - [Latest local verification record](docs/verification.md)
 - [Compatibility and limitations](docs/compatibility.md)

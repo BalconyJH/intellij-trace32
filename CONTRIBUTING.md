@@ -12,11 +12,11 @@ Keep language editing separate from target control. Adding a command to completi
 
 1. Create a focused branch and make the smallest change that addresses the issue.
 2. Add a regression when it exercises a real language or integration failure. Preserve restartable lexer behavior and exact text ranges.
-3. Run the relevant checks from the [development guide](docs/development.md). Run the full plugin build for changes to platform adapters, resources, or packaging.
+3. Run the relevant Gradle tasks from the [development guide](docs/development.md). Run plugin tests, packaging, and Plugin Verifier for changes to platform adapters, resources, or packaging.
 4. Update documentation and the unreleased changelog when user-visible behavior changes.
 5. Open a pull request explaining the problem, resulting behavior, and verification performed. Identify any checks you could not run.
 
-The production implementation is Kotlin. Java regression and platform tests intentionally exercise its JVM API. Keep test fixtures self-contained and synthetic; do not depend on another checkout, a specific board, a probe, or an installed Lauterbach TRACE32® session.
+The production implementation is Kotlin. JUnit tests may use Java or Kotlin. Keep the `practice-core` module independent of IntelliJ APIs, and put platform integration in `intellij-plugin`. Test fixtures must be self-contained and synthetic; do not depend on another checkout, a specific board, a probe, or an installed Lauterbach TRACE32® session.
 
 ## Repository hygiene
 
@@ -30,4 +30,4 @@ Issue reproductions and attached logs should be reduced and sanitized before sub
 
 ## Review expectations
 
-Tests using the IntelliJ core environment do not replace an interactive IDE check. Changes to symbol indexing, hierarchy rendering, refactoring preview/undo, or LSP lifecycle should include the applicable manual checks from the development guide. Compatibility with a new IDE build must be demonstrated before widening the plugin descriptor's version range.
+Platform fixture tests do not replace an interactive IDE check. Changes to hierarchy rendering, refactoring preview/undo, or LSP lifecycle should include the applicable manual checks from the development guide. Compatibility with a new IDE build must be demonstrated before widening the plugin descriptor's version range. Preserve wrapper and dependency verification when updating build tools.

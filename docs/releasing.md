@@ -1,44 +1,68 @@
 # Release process
 
-Release artifacts must come from the reviewed source and the intended CLion SDK. A successful build is required; an interactive IDE acceptance record is a separate check.
+Build release artifacts from reviewed source using the intended CLion SDK.
+Automated tests, API compatibility verification, and interactive IDE acceptance
+provide different evidence and should be recorded separately.
 
 ## Prepare a version
 
-1. Update the version in `src/main/resources/META-INF/plugin.xml` and the unreleased entry in `CHANGELOG.md`.
-2. Update versioned artifact examples in the README and development guide.
-3. Review the declared IDE range. Do not widen `since-build` or `until-build` merely because compilation succeeds.
-4. Run the full build, the real `t32ls` protocol check when applicable, and the relevant manual acceptance checks.
-5. Check the working tree for private paths, credentials, local settings, generated reports, caches, and proprietary fixtures.
+1. Update `pluginVersion` in `gradle.properties` and the unreleased changelog.
+2. Review `pluginSinceBuild`, `pluginUntilBuild`, and `platformVersion`. Widen
+   compatibility only after testing the additional IDE builds.
+3. Run the Gradle tests, package task, and Plugin Verifier:
+
+   ```shell
+   ./gradlew :practice-core:test :intellij-plugin:check :intellij-plugin:buildPlugin
+   ./gradlew :intellij-plugin:verifyPlugin
+   ```
+
+4. Run the real `t32ls` protocol check when relevant and perform applicable manual
+   IDE acceptance checks.
+5. Review source, examples, reports, and archive contents for private data.
+
+The wrapper and dependency versions must remain pinned. Verify upstream checksums
+when updating the wrapper; update the publication guard's explicit JAR checksum
+at the same time. Review dependency verification metadata when dependencies change.
 
 ## Inspect the distribution
 
-The ZIP should contain only the plugin directory and JAR. Inspect the JAR for the main descriptor, optional LSP descriptor, icon, templates, and compiled plugin classes. Tests, tool installers, compiler dependencies, extra Kotlin libraries, and `t32ls` must not be bundled.
+The unsigned ZIP is generated in `intellij-plugin/build/distributions/`. It
+contains the integration and core libraries, descriptors, icon, templates, and
+license notices. Tests, tool installers, compiler dependencies, extra Kotlin
+runtime libraries, and `t32ls` must not be bundled.
 
-Run the automated repository and artifact checks before reviewing the archive:
+Run the source and archive checks:
 
-```powershell
-python .\tools\test_check_repository.py
-python .\tools\check_repository.py --artifact .\build\trace32-toolkit-0.2.0.zip
+```shell
+python tools/test_check_repository.py
+python tools/check_repository.py --artifact intellij-plugin/build/distributions/trace32-toolkit-0.2.0.zip
 ```
 
-Generate a checksum for the final ZIP:
+Use the actual versioned filename produced by the build. Generate and retain a
+SHA-256 sidecar for the final ZIP. The packaging workflow does this after the
+archive audit. Sanitize raw reports before attaching them to a public release;
+logs can contain machine paths.
 
-```powershell
-Get-FileHash .\build\trace32-toolkit-0.2.0.zip -Algorithm SHA256
-```
+## Tag and publish
 
-Keep the checksum with the release asset. Build logs and reports may include machine paths and must be sanitized before publication.
+Use a version tag such as `v0.2.0`, matching the Gradle project version. The tag
+workflow runs tests and Plugin Verifier, audits the ZIP, and uploads the plugin
+and checksum as workflow artifacts. It does not create a GitHub Release or
+publish to JetBrains Marketplace.
 
-## Publish
+Release notes should identify tested IDE builds, changes, native versus optional
+LSP responsibilities, and known limits. Review the actual workflow results and
+artifacts before publishing.
 
-Use a version tag of the form `v0.2.0` matching the plugin descriptor. Follow the checked-in release workflow's prerequisites and inputs. Review generated artifacts and release notes before making the release public.
+Gradle provides plugin signing and publication tasks, but Marketplace credentials,
+certificates, publisher ownership, and submission require separate configuration.
+The SSH key used to sign Git commits is not a plugin archive signing certificate.
+Keep all signing secrets out of repository properties and source files.
 
-Release notes should state the tested IDE build, important changes, native versus optional LSP responsibilities, and known limitations. Do not include a developer machine's configuration or claim that unrun CI or GUI checks passed.
+## Install or roll back
 
-The packaging workflow uploads build artifacts; it does not create a GitHub Release or publish to JetBrains Marketplace. Marketplace signing, credentials, publisher ownership, and submission are separate release configuration work.
-
-## Upgrade and rollback
-
-The public plugin ID is `io.github.balconyjh.trace32`. Earlier development builds may have used another identity; users should disable those builds to prevent duplicate language registrations.
-
-The local `-Install` helper preserves a backup before replacing an installed plugin. Locked JARs are updated through the IDE's startup queue after a restart. For a manual rollback, close the IDE and reinstall a previously verified ZIP through the plugin manager; do not replace mapped JAR contents while the IDE is running.
+The public plugin ID remains `io.github.balconyjh.trace32`. Install a verified ZIP
+through **Settings > Plugins > Install Plugin from Disk** and restart the IDE.
+For rollback, reinstall a previously verified ZIP through the same manager.
+Development uses the separate `runIde` sandbox rather than modifying the active
+IDE profile.
