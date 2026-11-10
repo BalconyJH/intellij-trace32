@@ -26,6 +26,18 @@ jobs:
           python-version: '3.13'
       - name: Validate the Gradle wrapper
         uses: gradle/actions/wrapper-validation@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
+      - name: Lint GitHub Actions workflows
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          archive=actionlint_1.7.12_linux_amd64.tar.gz
+          destination="$RUNNER_TEMP/actionlint"
+          mkdir -p "$destination"
+          gh release download v1.7.12 --repo rhysd/actionlint --pattern "$archive" --dir "$destination"
+          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  $destination/$archive" | sha256sum --check
+          tar -xzf "$destination/$archive" -C "$destination" actionlint
+          "$destination/actionlint" -shellcheck= -pyflakes=
       - name: Check repository content
         run: |
           python tools/test_check_repository.py
@@ -37,13 +49,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-latest
-            shell: bash
-            gradle: ./gradlew
-          - os: windows-latest
-            shell: pwsh
-            gradle: ./gradlew.bat
+        os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
@@ -57,9 +63,14 @@ jobs:
       - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
         with:
           cache-read-only: ${{ github.event_name == 'pull_request' }}
-      - name: Run language core tests
-        shell: ${{ matrix.shell }}
-        run: ${{ matrix.gradle }} --no-daemon :practice-core:test
+      - name: Run language core tests on Linux
+        if: runner.os == 'Linux'
+        shell: bash
+        run: ./gradlew --no-daemon :practice-core:test
+      - name: Run language core tests on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./gradlew.bat --no-daemon :practice-core:test
       - name: Save core test reports
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

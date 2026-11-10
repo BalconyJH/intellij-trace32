@@ -124,8 +124,9 @@ language-server lifecycle behavior by themselves.
 
 ## CI and release checks
 
-[CI](../.github/workflows/ci.yml) validates repository content and the Gradle
-wrapper, runs core tests on Windows and Linux, exercises the real language
+[CI](../.github/workflows/ci.yml) validates repository content, the Gradle
+wrapper, and workflow syntax with checksum-pinned `actionlint` 1.7.12. It runs
+core tests on Windows and Linux, exercises the real language
 server, and calls the [plugin verification workflow](../.github/workflows/sdk-build.yml).
 That workflow runs plugin tests, builds the ZIP, runs Plugin Verifier, and audits
 the archive. It can also run manually.
