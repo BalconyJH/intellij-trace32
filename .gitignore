@@ -1,7 +1,9 @@
-/build/
+build/
 /backups/
 /.tools/
-/.gradle/
+.gradle/
+.kotlin/
+.intellijPlatform/
 /.idea/
 /.vscode/
 /.codex_tmp/

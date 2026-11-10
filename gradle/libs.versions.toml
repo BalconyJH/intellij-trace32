@@ -1,0 +1,12 @@
+[versions]
+kotlin = "2.4.21"
+intellij-platform = "2.20.1"
+plugin-verifier = "1.411"
+junit = "4.13.2"
+
+[libraries]
+junit = { module = "junit:junit", version.ref = "junit" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+intellij-platform = { id = "org.jetbrains.intellij.platform", version.ref = "intellij-platform" }
