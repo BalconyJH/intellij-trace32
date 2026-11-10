@@ -1,0 +1,16 @@
+name: Package a tagged release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+# Produces downloadable workflow artifacts. GitHub Releases and JetBrains
+# Marketplace publication remain explicit maintainer actions.
+jobs:
+  package:
+    uses: ./.github/workflows/sdk-build.yml
+    with:
+      release_tag: ${{ github.ref_name }}
