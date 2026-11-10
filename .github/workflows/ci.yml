@@ -77,6 +77,7 @@ jobs:
         with:
           name: core-tests-${{ matrix.os }}
           path: |
+            build/reports/
             practice-core/build/reports/tests/
             practice-core/build/test-results/
           if-no-files-found: warn

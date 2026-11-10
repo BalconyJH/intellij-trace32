@@ -68,6 +68,7 @@ jobs:
         with:
           name: plugin-verification-reports
           path: |
+            build/reports/
             practice-core/build/reports/
             practice-core/build/test-results/
             intellij-plugin/build/reports/
