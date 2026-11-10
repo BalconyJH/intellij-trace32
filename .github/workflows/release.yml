@@ -7,8 +7,8 @@ on:
 permissions:
   contents: read
 
-# Produces downloadable workflow artifacts. GitHub Releases and JetBrains
-# Marketplace publication remain explicit maintainer actions.
+# Generates workflow artifacts after Gradle tests and Plugin Verifier pass.
+# GitHub Releases and Marketplace publication are separate maintainer actions.
 jobs:
   package:
     uses: ./.github/workflows/sdk-build.yml

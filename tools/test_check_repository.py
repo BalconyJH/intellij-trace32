@@ -1,9 +1,13 @@
 """Regression checks for the public-content guard; no real private data is used."""
 import io
+import hashlib
+from pathlib import Path
+import tempfile
 import unittest
+from unittest.mock import patch
 import zipfile
 
-from check_repository import AUTHOR_EMAIL, check_archive, issues_in_text
+from check_repository import AUTHOR_EMAIL, WRAPPER_PATH, check_archive, check_source, issues_in_text
 
 
 def archive(entries):
@@ -21,7 +25,8 @@ class PublicationChecks(unittest.TestCase):
 
     def test_private_profile_path_is_rejected_in_tests_too(self):
         path = "C:" + "\\Users\\example-person\\project"
-        self.assertIn("user-home-path", issues_in_text("src/test/Example.java", path)[0])
+        for name in ("src/test/Example.java", "practice-core/src/test/Example.java", "intellij-plugin/src/test/Example.java"):
+            self.assertIn("user-home-path", issues_in_text(name, path)[0])
 
     def test_unix_profile_path_is_rejected(self):
         path = "/" + "home/example-person/project"
@@ -29,8 +34,32 @@ class PublicationChecks(unittest.TestCase):
 
     def test_synthetic_platform_paths_are_allowed_only_in_tests(self):
         path = "C:" + "/project/script.cmm"
-        self.assertEqual(issues_in_text("src/test/Example.java", path), [])
-        self.assertTrue(issues_in_text("README.md", path))
+        for name in ("src/test/Example.java", "practice-core/src/test/Example.java", "intellij-plugin/src/test/Example.java"):
+            self.assertEqual(issues_in_text(name, path), [])
+        for name in ("README.md", "intellij-plugin/src/main/Example.kt", "arbitrary/src/test/Example.java"):
+            self.assertTrue(issues_in_text(name, path))
+
+    def test_only_the_exact_verified_wrapper_binary_is_allowed(self):
+        content = b"synthetic wrapper fixture"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            wrapper = root / WRAPPER_PATH
+            wrapper.parent.mkdir(parents=True)
+            wrapper.write_bytes(content)
+            other = root / "other.jar"
+            other.write_bytes(content)
+            with patch("check_repository.candidate_files", return_value=[WRAPPER_PATH, "other.jar"]), patch("check_repository.WRAPPER_SHA256", hashlib.sha256(content).hexdigest()):
+                problems, _ = check_source(root)
+                self.assertEqual(problems, ["other.jar: binary-or-credential-file-in-source"])
+                wrapper.write_bytes(content + b"changed")
+                problems, _ = check_source(root)
+                self.assertIn(WRAPPER_PATH + ": unverified-gradle-wrapper", problems)
+
+    def test_nested_module_build_output_is_rejected_if_tracked(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with patch("check_repository.candidate_files", return_value=["practice-core/build/report.txt"]):
+                problems, _ = check_source(Path(directory))
+                self.assertEqual(problems, ["practice-core/build/report.txt: generated-or-private-file"])
 
     def test_other_email_addresses_are_rejected_without_echoing_them(self):
         address = "someone" + "@" + "example.net"

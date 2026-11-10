@@ -6,6 +6,7 @@ prints rule names and relative locations, never matching sensitive content.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import io
 from pathlib import Path, PurePosixPath
 import re
@@ -15,8 +16,11 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 AUTHOR_EMAIL = "73932916+BalconyJH@users.noreply.github.com"
-GENERATED = {".idea", ".vscode", ".tools", ".gradle", ".sandbox", ".codex_tmp", "build", "backups", "__pycache__"}
+GENERATED = {".idea", ".vscode", ".tools", ".gradle", ".kotlin", ".intellijPlatform", ".sandbox", ".codex_tmp", "build", "backups", "__pycache__"}
 BINARY_SUFFIXES = {".class", ".jar", ".zip", ".exe", ".dll", ".so", ".dylib", ".pfx", ".p12", ".pem", ".jks", ".keystore"}
+WRAPPER_PATH = "gradle/wrapper/gradle-wrapper.jar"
+# Updated only after checking the upstream Gradle wrapper checksum.
+WRAPPER_SHA256 = "3b8a25775a69158b5ad2b1d17a80a88dc7b40a352a73eb27d06c612a7ce68e98"
 RULES = (
     ("user-home-path", re.compile(r"(?i)(?:[a-z]:(?:\\{1,2}|/)(?:users|documents and settings)(?:\\{1,2}|/)[^\\/\s\"'<>]+|/(?:home|Users)/[\w.-]+)")),
     ("private-key", re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----")),
@@ -29,7 +33,7 @@ NON_ENGLISH = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff]")
 
 def issues_in_text(name: str, text: str, *, binary: bool = False) -> list[str]:
     problems = []
-    synthetic_test = name.startswith(("src/test/", "src/smoke/"))
+    synthetic_test = re.match(r"^(?:practice-core/|intellij-plugin/)?src/test/", name) is not None
     for number, line in enumerate(text.splitlines(), 1):
         for rule, pattern in RULES:
             if pattern.search(line):
@@ -61,14 +65,18 @@ def check_source(root: Path) -> tuple[list[str], int]:
         if any(part in GENERATED for part in relative.parts) or relative.name.startswith(".env") and relative.name != ".env.example":
             problems.append(f"{name}: generated-or-private-file")
             continue
-        if relative.suffix.lower() in BINARY_SUFFIXES:
-            problems.append(f"{name}: binary-or-credential-file-in-source")
-            continue
         file = root / name
         if file.is_symlink():
             problems.append(f"{name}: symlink-requires-explicit-review")
             continue
         if not file.is_file():  # A tracked deletion is not part of the working-tree publication.
+            continue
+        if name == WRAPPER_PATH:
+            if hashlib.sha256(file.read_bytes()).hexdigest() != WRAPPER_SHA256:
+                problems.append(f"{name}: unverified-gradle-wrapper")
+            continue
+        if relative.suffix.lower() in BINARY_SUFFIXES:
+            problems.append(f"{name}: binary-or-credential-file-in-source")
             continue
         try:
             content = file.read_text(encoding="utf-8")

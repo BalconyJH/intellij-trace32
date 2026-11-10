@@ -1,4 +1,4 @@
-name: Core and repository checks
+name: Build and repository checks
 
 on:
   push:
@@ -14,9 +14,38 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  repository:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.13'
+      - name: Validate the Gradle wrapper
+        uses: gradle/actions/wrapper-validation@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
+      - name: Check repository content
+        run: |
+          python tools/test_check_repository.py
+          python tools/check_repository.py
+          git diff --check
+
   core:
-    runs-on: windows-latest
-    timeout-minutes: 15
+    needs: repository
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            shell: bash
+            gradle: ./gradlew
+          - os: windows-latest
+            shell: pwsh
+            gradle: ./gradlew.bat
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -24,30 +53,30 @@ jobs:
       - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         with:
           distribution: temurin
-          java-version: '21'
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+          java-version: '25'
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
         with:
-          python-version: '3.13'
-      - name: Check public repository content
-        shell: pwsh
-        run: |
-          python tools/check_repository.py
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python tools/test_check_repository.py
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          git diff --check
-      - name: Run language core regressions and restart fuzz cases
-        shell: pwsh
-        run: ./tools/test-core.ps1
-      - name: Save core test report
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+      - name: Run language core tests
+        shell: ${{ matrix.shell }}
+        run: ${{ matrix.gradle }} --no-daemon :practice-core:test
+      - name: Save core test reports
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: core-test-report
-          path: build/core-tests/result.txt
-          if-no-files-found: error
+          name: core-tests-${{ matrix.os }}
+          path: |
+            practice-core/build/reports/tests/
+            practice-core/build/test-results/
+          if-no-files-found: warn
           retention-days: 14
 
+  plugin:
+    needs: repository
+    uses: ./.github/workflows/sdk-build.yml
+
   lsp:
+    needs: repository
     runs-on: windows-latest
     timeout-minutes: 10
     steps:
