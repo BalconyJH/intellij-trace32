@@ -1,0 +1,3 @@
+// Target for the DO path navigation demonstration.
+PRINT "Child script."
+ENDDO

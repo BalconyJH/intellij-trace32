@@ -1,0 +1,8 @@
+// Synthetic strings, number formats, and macro substitution.
+PRIVATE &value
+&value=0y0011
+PRINT 0xFFxx 0x0..0xFF 1MHz 5.0s
+PRINT "Doubled quotes: ""example"""
+PRINT 'single quoted' "&value &(value)"
+List.Java `<clinit>(); // literal text`
+ENDDO

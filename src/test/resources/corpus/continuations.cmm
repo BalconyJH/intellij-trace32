@@ -1,0 +1,8 @@
+// Synthetic continued declarations and script commands.
+PRIVATE &first \
+        &second
+PRINT "&first" \
+      "&(second)"
+ON ERROR \
+    DO "child.cmm"
+ENDDO

@@ -1,0 +1,26 @@
+// Editor demonstration: Ctrl+Space completion, Ctrl+B navigation, Ctrl+/ comments.
+// Ctrl+Q documentation, Ctrl+P parameters, Alt+F7 usages, Shift+F6 local rename.
+// This example only prints text; opening it does not execute it.
+PRIVATE &directory &count
+&directory=OS.PPD()
+&count=3.
+ON ERROR GOTO failed
+
+WHILE &count>0.
+(
+    PRINT "Remaining: &count (explicit macro form: &(count))"
+    &count=&count-1.
+)
+
+DO "&directory/child.cmm"
+GOSUB report
+ENDDO
+
+report:
+PRINT STRing.MID("CMM editor example",0.,3.)
+PRINT "Editor demo finished."
+RETURN
+
+failed:
+PRINT %ERROR ERROR.MESSAGE()
+ENDDO

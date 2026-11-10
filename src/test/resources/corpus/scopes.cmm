@@ -1,0 +1,16 @@
+// Synthetic scopes for editor analysis, not a runtime-scope specification.
+PRIVATE &outer
+&outer=1.
+IF TRUE()
+(
+    LOCAL &inner
+    &inner=&outer
+    PRINT "&inner"
+)
+SUBROUTINE example
+(
+    PARAMETERS &argument
+    PRINT &argument
+    RETURN
+)
+ENDDO

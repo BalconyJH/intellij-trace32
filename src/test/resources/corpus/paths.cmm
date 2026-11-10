@@ -1,0 +1,14 @@
+// Synthetic paths used only as parser input; this fixture is never executed.
+PRIVATE &directory
+&directory=OS.PPD()
+DO "&directory/child.cmm"
+DO "~~~~/child.cmm"
+DO "~~/demo/child.cmm"
+RUN "~~~/generated.cmm"
+GLOBALON CMD custom DO "child.cmm"
+ON ERROR GOTO failed
+ENDDO
+
+failed:
+PRINT "Example error"
+ENDDO

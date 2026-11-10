@@ -1,0 +1,14 @@
+// Synthetic language fixture. No target connection or hardware commands.
+PRIVATE &count
+&count=3.
+WHILE &count>0.
+(
+    PRINT "Remaining: &count / &(count)"
+    &count=&count-1.
+)
+GOSUB report
+ENDDO
+
+report:
+PRINT "Finished"
+RETURN
