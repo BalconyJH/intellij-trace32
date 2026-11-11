@@ -79,6 +79,4 @@ Live templates: `cmmif`, `cmmifelse`, `cmmwhile`, `cmmrepeat`, `cmmsub`, and `cm
 - [Roadmap](docs/roadmap.md) and [changelog](CHANGELOG.md)
 - [Contributing](CONTRIBUTING.md) and [security reporting](SECURITY.md)
 
-Maintained by **BalconyJH**. Author email: `73932916+BalconyJH@users.noreply.github.com`.
-
 Licensed under the [MIT License](LICENSE). This project is independent and is not affiliated with or endorsed by Lauterbach or JetBrains. See [third-party and trademark notices](THIRD_PARTY_NOTICES.md) for product attribution and external software licenses.
