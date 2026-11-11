@@ -1,25 +1,25 @@
 # Toolkit for Lauterbach TRACE32®
 
-Unofficial Lauterbach TRACE32® PRACTICE language support for CLion, written in Kotlin with optional [t32ls](https://github.com/xasc/t32-language-server) integration.
+PRACTICE script editing for CLion, with syntax highlighting, contextual completion, navigation, and local refactoring. Written in Kotlin, the plugin supports `.cmm` and `.cmmt` files and offers optional language-server integration through [t32ls](https://github.com/xasc/t32-language-server).
 
-Edit `.cmm` and `.cmmt` files with contextual completion, navigation, documentation, local refactoring, and script call hierarchies. The current version targets **CLion 2026.3 / IntelliJ Platform 263**. See [compatibility and limitations](docs/compatibility.md) before using another IDE or platform version.
+**Supported IDE:** CLion 2026.3 / IntelliJ Platform `263.*`. See [compatibility](docs/compatibility.md) for the configured SDK, tested scope, and analysis limits.
 
 ## Features
 
-| Area | Support |
+| Feature | What you can do |
 | --- | --- |
-| Highlighting | Commands, functions, labels, comments, numeric formats, strings, and embedded macros, including `&name` and `&(name)` |
-| Completion | Curated commands and functions, documented abbreviations, common options, visible macros, labels, and script paths |
-| Navigation | Local declarations, static script paths, structure view, project symbol search, and static script callers/callees |
-| Documentation | Quick documentation and parameter hints for curated command and function signatures |
-| Editing | Line comments, block/comment folding, bracket and quote support, indentation, and six live templates |
-| Refactoring | File-local usages and rename with collision and binding checks, including repeated macros inside strings |
-| Diagnostics | Conservative checks for structural errors, duplicate labels, and unresolved local branch targets |
-| Optional LSP | Definitions, references, and semantic highlighting through a separately installed `t32ls` server |
+| Syntax highlighting | Read commands, functions, labels, comments, numbers, strings, and embedded `&name` / `&(name)` macros. |
+| Contextual completion | Complete curated commands and functions, documented abbreviations, common options, visible macros, labels, and script paths. |
+| Navigation | Jump to local declarations and static script paths, browse the file structure, search project symbols, and inspect script callers and callees. |
+| Documentation | View quick documentation and parameter hints for curated command and function signatures. |
+| Editing | Toggle line comments, fold blocks and comments, pair brackets and quotes, format indentation, and insert live templates. |
+| Local refactoring | Find usages and rename resolvable symbols within a file, with collision and binding checks. |
+| Diagnostics | Identify structural errors, duplicate labels, and unresolved local branch targets. |
+| Optional LSP | Add definitions, references, and semantic highlighting through a separately installed `t32ls` server. |
 
-The command catalog is a curated set, not a complete database of every Lauterbach TRACE32® target command. The formatter changes indentation only. Macro analysis is static and does not simulate the PRACTICE runtime stack.
+The command catalog is curated, and macro analysis is static. Formatting adjusts indentation; call hierarchies describe static script calls. See [analysis limits](docs/compatibility.md#analysis-limits) for details.
 
-This repository currently provides **editing and language analysis**. It does not include a debug adapter, execute PRACTICE scripts, connect to a probe, or control a target. Runtime and debugger integration are [future work](docs/roadmap.md).
+The current scope is editing and language analysis. Script execution, probe connections, target control, and debug-adapter support are tracked in the [roadmap](docs/roadmap.md).
 
 ## Build and install
 
