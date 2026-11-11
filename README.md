@@ -97,15 +97,25 @@ The project has two modules: `practice-core` contains the IDE-independent scanne
 
 CI runs core tests on Linux and Windows, plugin tests on Windows, real `t32ls` protocol checks, Plugin Verifier, and repository and archive checks. See the [development guide](docs/development.md) for local SDK configuration, test commands, and manual IDE acceptance checks.
 
-## Project information
+## Documentation
 
-- [Architecture](docs/architecture.md)
-- [Project structure and upstream references](docs/project-structure.md)
-- [Development and verification](docs/development.md)
-- [Latest local verification record](docs/verification.md)
-- [Compatibility and limitations](docs/compatibility.md)
-- [Release process](docs/releasing.md)
-- [Roadmap](docs/roadmap.md) and [changelog](CHANGELOG.md)
-- [Contributing](CONTRIBUTING.md) and [security reporting](SECURITY.md)
+| Guide | Contents |
+| --- | --- |
+| [Compatibility](docs/compatibility.md) | Supported IDE builds and analysis limits |
+| [Language server](docs/lsp.md) | Installation, settings, capabilities, and troubleshooting |
+| [Development](docs/development.md) | Builds, tests, sandbox setup, and verification |
+| [Architecture](docs/architecture.md) | Language model and IDE integration |
+| [Project structure](docs/project-structure.md) | Module layout and upstream references |
+| [Verification record](docs/verification.md) | Recorded checks and their scope |
+| [Release process](docs/releasing.md) | Versioning, packaging, and publication |
+| [Roadmap](docs/roadmap.md) / [Changelog](CHANGELOG.md) | Planned work and release history |
 
-Licensed under the [MIT License](LICENSE). This project is independent and is not affiliated with or endorsed by Lauterbach or JetBrains. See [third-party and trademark notices](THIRD_PARTY_NOTICES.md) for product attribution and external software licenses.
+See [Contributing](CONTRIBUTING.md) for contribution guidelines and [Security](SECURITY.md) for reporting vulnerabilities.
+
+## License and trademarks
+
+Licensed under the [MIT License](LICENSE).
+
+Lauterbach TRACE32® is a product of Lauterbach GmbH. TRACE32® is a registered trademark of Lauterbach GmbH. This is an independent community project and is not affiliated with or endorsed by Lauterbach GmbH or JetBrains.
+
+See [third-party and trademark notices](THIRD_PARTY_NOTICES.md) for attribution and external software licenses.
