@@ -32,6 +32,26 @@ For a local build, select the ZIP in `intellij-plugin/build/distributions/` dire
 
 Native editing features work immediately without a language server. Opening a script does not execute it.
 
+### Editor shortcuts
+
+These shortcuts use the default Windows keymap. Use **Find Action** for other keymaps.
+
+| Action | Shortcut |
+| --- | --- |
+| Complete code or a script path | `Ctrl+Space` |
+| Go to declaration | `Ctrl+B` |
+| Quick documentation | `Ctrl+Q` |
+| Parameter info | `Ctrl+P` |
+| Find usages | `Alt+F7` |
+| Rename | `Shift+F6` |
+| Script call hierarchy | `Ctrl+Alt+H` |
+| Toggle line comment | `Ctrl+/` |
+| Reformat indentation | `Ctrl+Alt+L` |
+
+Live templates: `cmmif`, `cmmifelse`, `cmmwhile`, `cmmrepeat`, `cmmsub`, and `cmmerror`.
+
+Customize colors under **Settings > Editor > Color Scheme > Lauterbach TRACE32® PRACTICE**.
+
 ## Optional language server
 
 `t32ls` is **not bundled in the plugin ZIP**. Native editing features work without it, and LSP is disabled by default for new projects.
@@ -69,21 +89,6 @@ Launch a separate CLion development sandbox with the plugin installed:
 The project has two modules: `practice-core` contains the IDE-independent scanner, semantic model, and catalog; `intellij-plugin` contains editor integration, settings, and LSP support.
 
 CI runs core tests on Linux and Windows, plugin tests on Windows, real `t32ls` protocol checks, Plugin Verifier, and repository and archive checks. See the [development guide](docs/development.md) for local SDK configuration, test commands, and manual IDE acceptance checks.
-
-## Common actions
-
-These shortcuts use the default Windows keymap; use **Find Action** if your keymap differs.
-
-| Action | Shortcut |
-| --- | --- |
-| Complete code or a script path | `Ctrl+Space` |
-| Go to declaration | `Ctrl+B` |
-| Quick documentation / parameter info | `Ctrl+Q` / `Ctrl+P` |
-| Find usages / rename | `Alt+F7` / `Shift+F6` |
-| Script call hierarchy | `Ctrl+Alt+H` |
-| Toggle line comment / reformat indentation | `Ctrl+/` / `Ctrl+Alt+L` |
-
-Live templates: `cmmif`, `cmmifelse`, `cmmwhile`, `cmmrepeat`, `cmmsub`, and `cmmerror`. Colors are configurable under **Editor > Color Scheme > Lauterbach TRACE32® PRACTICE**.
 
 ## Project information
 
