@@ -21,23 +21,16 @@ The command catalog is curated, and macro analysis is static. Formatting adjusts
 
 The current scope is editing and language analysis. Script execution, probe connections, target control, and debug-adapter support are tracked in the [roadmap](docs/roadmap.md).
 
-## Build and install
+## Install and try it
 
-Install JDK 25 and set `JAVA_HOME` to that JDK. Open the repository root as a Gradle project. The checked-in Gradle Wrapper downloads the pinned Gradle version; the build resolves Kotlin and the configured CLion SDK.
+1. Download the `trace32-toolkit` artifact from a successful [CI run](https://github.com/BalconyJH/intellij-trace32/actions/workflows/ci.yml), or [build the plugin](#build-and-develop) locally.
+2. Extract the downloaded artifact archive to find the plugin ZIP and its SHA-256 file. Keep the plugin ZIP intact.
+3. In CLion, open **Settings > Plugins > Install Plugin from Disk**, select `trace32-toolkit-<version>.zip`, and restart the IDE.
+4. Open [examples/editor-demo.cmm](examples/editor-demo.cmm) to explore completion, navigation, documentation, and refactoring.
 
-From the repository root:
+For a local build, select the ZIP in `intellij-plugin/build/distributions/` directly. If an older development copy of this plugin is installed, remove it before installing the new one to avoid duplicate file associations.
 
-```shell
-./gradlew :practice-core:test :intellij-plugin:check :intellij-plugin:buildPlugin
-```
-
-On Windows PowerShell, use `.\gradlew.bat` in place of `./gradlew`. The distribution is written to `intellij-plugin/build/distributions/`. Run `./gradlew :intellij-plugin:verifyPlugin` to check compatibility against the configured IDE.
-
-In CLion, choose **Settings > Plugins > Install Plugin from Disk**, select the ZIP, and restart. If an earlier development version of this language plugin is installed, disable or uninstall it first to avoid duplicate file associations and extensions.
-
-For development, run `./gradlew :intellij-plugin:runIde` to launch a separate CLion sandbox with the plugin installed. To use a local SDK, pass `-PlocalPlatformPath` as described in the [development guide](docs/development.md).
-
-Open [examples/editor-demo.cmm](examples/editor-demo.cmm) to try the editor. Opening a script does not execute it. Build details and test commands are in the [development guide](docs/development.md).
+Native editing features work immediately without a language server. Opening a script does not execute it.
 
 ## Optional language server
 
@@ -52,6 +45,30 @@ To download the pinned Windows server:
 Open **Settings > Languages & Frameworks > Lauterbach TRACE32®**, enable the language server, and select the executable reported by the installer. Optionally configure the Lauterbach TRACE32® system and temporary directories to resolve `~~` and `~~~` paths. `~~~~` refers to the current script directory.
 
 See [LSP setup and troubleshooting](docs/lsp.md) for configuration, capabilities, and protocol tests.
+
+## Build and develop
+
+Set `JAVA_HOME` to a full **JDK 25** and open the repository root as a Gradle project. The checked-in Gradle Wrapper downloads the pinned build tools and configured CLion SDK.
+
+Run tests, package the plugin, and verify API compatibility:
+
+```shell
+./gradlew :practice-core:test :intellij-plugin:check
+./gradlew :intellij-plugin:buildPlugin
+./gradlew :intellij-plugin:verifyPlugin
+```
+
+In Windows PowerShell, replace `./gradlew` with `.\gradlew.bat`. The plugin ZIP is generated under `intellij-plugin/build/distributions/`.
+
+Launch a separate CLion development sandbox with the plugin installed:
+
+```shell
+./gradlew :intellij-plugin:runIde
+```
+
+The project has two modules: `practice-core` contains the IDE-independent scanner, semantic model, and catalog; `intellij-plugin` contains editor integration, settings, and LSP support.
+
+CI runs core tests on Linux and Windows, plugin tests on Windows, real `t32ls` protocol checks, Plugin Verifier, and repository and archive checks. See the [development guide](docs/development.md) for local SDK configuration, test commands, and manual IDE acceptance checks.
 
 ## Common actions
 
