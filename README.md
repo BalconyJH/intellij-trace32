@@ -54,17 +54,24 @@ Customize colors under **Settings > Editor > Color Scheme > Lauterbach TRACE32®
 
 ## Optional language server
 
-`t32ls` is **not bundled in the plugin ZIP**. Native editing features work without it, and LSP is disabled by default for new projects.
+The plugin includes the LSP integration code. The `t32ls` executable is installed separately, and LSP is disabled by default for new projects.
 
-To download the pinned Windows server:
+On Windows, run the installer from the repository root to download and verify the pinned server release:
 
 ```powershell
 .\tools\t32ls-install.ps1
 ```
 
-Open **Settings > Languages & Frameworks > Lauterbach TRACE32®**, enable the language server, and select the executable reported by the installer. Optionally configure the Lauterbach TRACE32® system and temporary directories to resolve `~~` and `~~~` paths. `~~~~` refers to the current script directory.
+Then open **Settings > Languages & Frameworks > Lauterbach TRACE32®**:
 
-See [LSP setup and troubleshooting](docs/lsp.md) for configuration, capabilities, and protocol tests.
+1. Enable the language server.
+2. Select the executable path reported by the installer.
+3. Optionally configure the system directory for `~~` paths and the temporary directory for `~~~` paths.
+4. Apply the settings and open a script.
+
+`~~~~` resolves to the current script directory. Directory settings also support native path completion and navigation when LSP is disabled.
+
+See [LSP setup and troubleshooting](docs/lsp.md) for capabilities, protocol checks, and configuration details. The language server analyzes scripts; it does not provide debugger or target-control functionality.
 
 ## Build and develop
 
